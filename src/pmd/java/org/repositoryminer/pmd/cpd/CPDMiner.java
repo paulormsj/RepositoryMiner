@@ -17,42 +17,36 @@ import org.repositoryminer.persistence.handler.ReferenceDocumentHandler;
 import org.repositoryminer.persistence.handler.RepositoryDocumentHandler;
 import org.repositoryminer.pmd.cpd.model.Occurrence;
 import org.repositoryminer.pmd.cpd.persistence.CPDDocumentHandler;
-import org.repositoryminer.scm.ISCM;
 import org.repositoryminer.scm.ReferenceType;
-import org.repositoryminer.scm.SCMFactory;
-import org.repositoryminer.utility.FileUtils;
 
 import com.mongodb.client.model.Projections;
 
 public class CPDMiner {
 
 	private Repository repository;
-	private ISCM scm;
-	private String tmpRepository;
 	private CPDExecutor cpdExecutor;
 
-	private CPDDocumentHandler cpdPersist;
-	private CommitDocumentHandler commitPersist;
-	private ReferenceDocumentHandler refPersist;
+	private CPDDocumentHandler cpdPersist = new CPDDocumentHandler();
+	private CommitDocumentHandler commitPersist = new CommitDocumentHandler();
+	private ReferenceDocumentHandler refPersist = new ReferenceDocumentHandler();
 
 	private int minTokens = 100;
 	private String charset = "UTF-8";
-	private Set<Language> languages;
-
-	private CPDMiner() {
-		languages = new HashSet<Language>(1);
-		languages.add(Language.JAVA);
-	}
 	
+	@SuppressWarnings("serial")
+	private Set<Language> languages = new HashSet<Language>() {{
+		add(Language.JAVA); 
+	}};
+
 	public CPDMiner(Repository repository) {
-		this();
 		this.repository = repository;
+		cpdExecutor = new CPDExecutor(repository.getPath());
 	}
 
 	public CPDMiner(String repositoryId) {
-		this();
 		RepositoryDocumentHandler repoHandler = new RepositoryDocumentHandler();
-		this.repository = Repository.parseDocument(repoHandler.findById(repositoryId, Projections.include("scm", "path")));
+		this.repository = Repository.parseDocument(repoHandler.findById(repositoryId, Projections.include("path")));
+		cpdExecutor = new CPDExecutor(repository.getPath());
 	}
 
 	public int getMinTokens() {
@@ -91,28 +85,9 @@ public class CPDMiner {
 		persistAnalysis(commitId, reference);
 	}
 
-	public void configure() throws IOException {
-		tmpRepository = FileUtils.copyFolderToTmp(repository.getPath(), repository.getId());
-		cpdExecutor = new CPDExecutor(tmpRepository);
-
-		cpdPersist = new CPDDocumentHandler();
-		commitPersist = new CommitDocumentHandler();
-		refPersist = new ReferenceDocumentHandler();
-
-		scm = SCMFactory.getSCM(repository.getScm());
-		scm.open(tmpRepository);
-	}
-
-	public void dispose() throws IOException {
-		scm.close();
-		FileUtils.deleteFolder(tmpRepository);
-	}
-
 	private void persistAnalysis(String commitId, Reference ref) throws IOException {
 		Document commitDoc = commitPersist.findById(commitId, Projections.include("commit_date"));
 		Commit commit = Commit.parseDocument(commitDoc);
-
-		checkout(commitId);
 
 		configureCPD();
 		List<Occurrence> occurrences = cpdExecutor.execute();
@@ -125,21 +100,17 @@ public class CPDMiner {
 				doc.append("reference_name", ref.getName());
 				doc.append("reference_type", ref.getType().toString());
 			}
-			
+
 			doc.append("commit", commit.getId());
 			doc.append("commit_date", commit.getCommitDate());
 			doc.append("repository", new ObjectId(repository.getId()));
 			doc.append("tokens_threshold", minTokens);
 			doc.putAll(occurence.toDocument());
-			
+
 			documents.add(doc);
 		}
 
 		cpdPersist.insertMany(documents);
-	}
-
-	private void checkout(String ref) {
-		scm.checkout(ref);
 	}
 
 	private void configureCPD() {

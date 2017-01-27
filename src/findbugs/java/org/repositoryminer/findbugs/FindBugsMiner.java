@@ -20,10 +20,7 @@ import org.repositoryminer.persistence.handler.CommitDocumentHandler;
 import org.repositoryminer.persistence.handler.ReferenceDocumentHandler;
 import org.repositoryminer.persistence.handler.RepositoryDocumentHandler;
 import org.repositoryminer.persistence.handler.WorkingDirectoryDocumentHandler;
-import org.repositoryminer.scm.ISCM;
 import org.repositoryminer.scm.ReferenceType;
-import org.repositoryminer.scm.SCMFactory;
-import org.repositoryminer.utility.FileUtils;
 import org.repositoryminer.utility.StringUtils;
 
 import com.mongodb.client.model.Projections;
@@ -58,26 +55,26 @@ public class FindBugsMiner {
 	private static final String DEFAULT_USER_PREFS_EFFORT = UserPreferences.EFFORT_DEFAULT;
 
 	private Repository repository;
-	private ISCM scm;
-	private String tmpRepository;
 	private FindBugsExecutor findBugsExecutor;
 
-	private FindBugsDocumentHandler findBugsPersist;
-	private CommitDocumentHandler commitPersist;
-	private ReferenceDocumentHandler refPersist;
-	private WorkingDirectoryDocumentHandler wdPersist;
+	private FindBugsDocumentHandler findBugsPersist = new FindBugsDocumentHandler();
+	private CommitDocumentHandler commitPersist = new CommitDocumentHandler();
+	private ReferenceDocumentHandler refPersist = new ReferenceDocumentHandler();
+	private WorkingDirectoryDocumentHandler wdPersist = new WorkingDirectoryDocumentHandler();
 
 	private Priority priority = Priority.NORMAL;
 	private Effort effort = Effort.DEFAULT;
 
 	public FindBugsMiner(Repository repository) {
 		this.repository = repository;
+		findBugsExecutor = new FindBugsExecutor(repository.getPath());
 	}
 
 	public FindBugsMiner(String repositoryId) {
 		RepositoryDocumentHandler repoHandler = new RepositoryDocumentHandler();
 		this.repository = Repository
-				.parseDocument(repoHandler.findById(repositoryId, Projections.include("scm", "path")));
+				.parseDocument(repoHandler.findById(repositoryId, Projections.include("path")));
+		findBugsExecutor = new FindBugsExecutor(repository.getPath());
 	}
 
 	public void findBugs(String hash) throws IllegalStateException, IOException, InterruptedException {
@@ -91,38 +88,6 @@ public class FindBugsMiner {
 
 		String commitId = reference.getCommits().get(0);
 		persistAnalysis(commitId, reference);
-	}
-
-	public void configure() throws IOException {
-		tmpRepository = FileUtils.copyFolderToTmp(repository.getPath(), repository.getId());
-		findBugsExecutor = new FindBugsExecutor(tmpRepository);
-
-		findBugsPersist = new FindBugsDocumentHandler();
-		commitPersist = new CommitDocumentHandler();
-		refPersist = new ReferenceDocumentHandler();
-		wdPersist = new WorkingDirectoryDocumentHandler();
-
-		scm = SCMFactory.getSCM(repository.getScm());
-		scm.open(tmpRepository);
-	}
-
-	public void checkout(String ref) {
-		scm.checkout(ref);
-	}
-
-	public void checkout(String reference, ReferenceType type) {
-		List<Reference> references = scm.getReferences();
-		for (Reference r : references) {
-			if (r.getName().equals(reference) && r.getType().equals(type)) {
-				scm.checkout(r.getPath());
-				break;
-			}
-		}
-	}
-
-	public void dispose() throws IOException {
-		scm.close();
-		FileUtils.deleteFolder(tmpRepository);
 	}
 
 	public void setEffort(Effort effort) {
