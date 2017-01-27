@@ -1,4 +1,4 @@
-package org.repositoryminer.technicaldebt;
+package org.repositoryminer.technicaldebt.codedebt;
 
 public enum TechnicalDebtIndicator {
 

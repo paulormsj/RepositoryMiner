@@ -1,4 +1,4 @@
-package org.repositoryminer.technicaldebt.code;
+package org.repositoryminer.technicaldebt.codedebt;
 
 import org.bson.Document;
 import org.repositoryminer.technicaldebt.TechnicalDebtId;

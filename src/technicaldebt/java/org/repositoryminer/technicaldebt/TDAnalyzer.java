@@ -9,10 +9,10 @@ import org.repositoryminer.model.Commit;
 import org.repositoryminer.model.Reference;
 import org.repositoryminer.persistence.handler.CommitDocumentHandler;
 import org.repositoryminer.persistence.handler.ReferenceDocumentHandler;
-import org.repositoryminer.persistence.handler.TechnicalCodeDebtDocumentHandler;
 import org.repositoryminer.persistence.handler.WorkingDirectoryDocumentHandler;
 import org.repositoryminer.scm.ReferenceType;
-import org.repositoryminer.technicaldebt.code.ITechnicalCodeDebt;
+import org.repositoryminer.technicaldebt.codedebt.ITechnicalCodeDebt;
+import org.repositoryminer.technicaldebt.persistence.TechnicalCodeDebtDocumentHandler;
 import org.repositoryminer.utility.StringUtils;
 
 import com.mongodb.client.model.Projections;

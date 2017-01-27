@@ -1,4 +1,4 @@
-package org.repositoryminer.technicaldebt.code;
+package org.repositoryminer.technicaldebt.codedebt;
 
 import static com.mongodb.client.model.Projections.include;
 
@@ -11,7 +11,6 @@ import org.repositoryminer.findbugs.persistence.FindBugsDocumentHandler;
 import org.repositoryminer.persistence.handler.DirectCodeAnalysisDocumentHandler;
 import org.repositoryminer.pmd.cpd.persistence.CPDDocumentHandler;
 import org.repositoryminer.technicaldebt.TechnicalDebtId;
-import org.repositoryminer.technicaldebt.TechnicalDebtIndicator;
 import org.repositoryminer.utility.StringUtils;
 
 public class CodeDebt implements ITechnicalCodeDebt {
