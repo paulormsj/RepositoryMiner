@@ -26,7 +26,7 @@ public class DIT implements IIndirectCodeMetric {
 
 	// Stores the DIT of each class.
 	private Map<String, Integer> dit = new HashMap<String, Integer>();
-	
+
 	@Override
 	public void calculate(AbstractClassDeclaration type, AST ast) {
 		if (!type.getArchetype().equals(ClassArchetype.CLASS_OR_INTERFACE)) {
@@ -53,23 +53,21 @@ public class DIT implements IIndirectCodeMetric {
 
 	@Override
 	public Map<String, Document> getResult() {
-		bfs();
+		calculateDIT();
 
 		Map<String, Document> result = new HashMap<String, Document>();
 
 		for (Entry<String, Integer> entry : dit.entrySet()) {
-			result.put(entry.getKey(), new Document("metric", CodeMetricId.DIT.toString()).append("value", entry.getValue()));
+			result.put(entry.getKey(),
+					new Document("metric", CodeMetricId.DIT.toString()).append("value", entry.getValue()));
 		}
 		
-		// Do not forget to clean your mess after finish the job, another checkout can use this class.
-		dag.clear();
-		dit.clear();
-		
+		clean();
 		return result;
 	}
 
 	// calculates the DIT of the classes using breadth-first search
-	private void bfs() {
+	public void calculateDIT() {
 		Queue<String> queue = new ArrayDeque<String>();
 		queue.add(""); // "" is the root
 
@@ -87,11 +85,22 @@ public class DIT implements IIndirectCodeMetric {
 
 			for (String w : adjs) {
 				queue.add(w);
-				dit.put(w, dit.get(s)+1);
+				dit.put(w, dit.get(s) + 1);
 			}
 		}
-		
+
 		dit.remove(""); // removing the fake root from the result
 	}
 
+	// Do not forget to clean your mess after finish the job, another checkout
+	// can use this class.
+	public void clean() {
+		dag.clear();
+		dit.clear();
+	}
+
+	public Map<String, Integer> getDIT() {
+		return dit;
+	}
+	
 }
