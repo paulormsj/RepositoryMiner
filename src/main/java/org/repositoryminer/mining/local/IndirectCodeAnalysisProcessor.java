@@ -87,8 +87,8 @@ public class IndirectCodeAnalysisProcessor {
 
 	public void start() throws IOException {
 		for (Reference ref : references) {
-			snapshots.remove(ref.getCommits().get(0)); // avoids to process some
-			// commit again
+			// avoids to process some commit again
+			snapshots.remove(ref.getCommits().get(0));
 		}
 
 		int total = references.size() + snapshots.size();
@@ -129,10 +129,10 @@ public class IndirectCodeAnalysisProcessor {
 	private void processReferences() throws IOException {
 		int index = 1;
 		int total = references.size() + snapshots.size();
-		
+
 		for (Reference ref : references) {
 			String commitId = ref.getCommits().get(0);
-			
+
 			listener.notifyIndirectCodeAnalysisProgress(ref.getName(), index, total);
 
 			Commit commit = Commit.parseDocument(commitHandler.findById(commitId, Projections.include("commit_date")));
@@ -141,14 +141,14 @@ public class IndirectCodeAnalysisProcessor {
 			processFiles(commit, ref);
 		}
 	}
-	
+
 	private void processCommits() throws IOException {
 		int index = references.size() + 1;
 		int total = references.size() + snapshots.size();
-		
+
 		for (String snapshot : snapshots) {
 			listener.notifyIndirectCodeAnalysisProgress(snapshot, index, total);
-			
+
 			Commit commit = Commit.parseDocument(commitHandler.findById(snapshot, Projections.include("commit_date")));
 			scm.checkout(snapshot);
 			processFiles(commit, null);
