@@ -6,11 +6,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
-import org.repositoryminer.checkstyle.logger.RepositoryMinerAudit;
+import org.repositoryminer.checkstyle.audit.RepositoryMinerAudit;
+import org.repositoryminer.checkstyle.model.StyleProblem;
 import org.repositoryminer.exceptions.RepositoryMinerException;
 
 import com.google.common.io.Closeables;
@@ -29,6 +31,10 @@ public class CheckstyleExecutor {
 	private String configFile;
 	private String repository;
 	
+	public CheckstyleExecutor(String repository) {
+		this.repository = repository;
+	}
+
 	public void setPropertiesFile(String propertiesFile) {
 		this.propertiesFile = propertiesFile;
 	}
@@ -37,11 +43,7 @@ public class CheckstyleExecutor {
 		this.configFile = configFile;
 	}
 
-	public void setRepository(String repository) {
-		this.repository = repository;
-	}
-
-	public void execute() throws CheckstyleException {
+	public Map<String, List<StyleProblem>> execute() throws CheckstyleException {
 		final Properties properties;
 
 		if (propertiesFile == null) {
@@ -56,6 +58,7 @@ public class CheckstyleExecutor {
 
 		// create our custom audit listener
 		final RepositoryMinerAudit listener = new RepositoryMinerAudit();
+		listener.setRepositoryPathLength(repository.length());
 
 		final ClassLoader moduleClassLoader = Checker.class.getClassLoader();
 		final RootModule rootModule = getRootModule(config.getName(), moduleClassLoader);
@@ -68,6 +71,8 @@ public class CheckstyleExecutor {
 		rootModule.process(getFiles(repository));
 
 		rootModule.destroy();
+		
+		return listener.getFileErrors();
 	}
 
 	private static Properties loadProperties(File file) {

@@ -71,7 +71,7 @@ public class FindBugsMiner {
 	}
 
 	public FindBugsMiner(String repositoryId) {
-		RepositoryDocumentHandler repoHandler = new RepositoryDocumentHandler();
+		final RepositoryDocumentHandler repoHandler = new RepositoryDocumentHandler();
 		this.repository = Repository
 				.parseDocument(repoHandler.findById(repositoryId, Projections.include("path")));
 		findBugsExecutor = new FindBugsExecutor(repository.getPath());
