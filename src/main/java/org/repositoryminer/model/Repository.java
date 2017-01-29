@@ -26,7 +26,7 @@ public class Repository {
 		
 		Repository repository = new Repository(repositoryDoc.getObjectId("_id").toString(),
 				repositoryDoc.getString("name"), repositoryDoc.getString("path"),
-				repositoryDoc.getString("description"), SCMType.valueOf(repositoryDoc.getString("scm")));
+				repositoryDoc.getString("description"), SCMType.parse(repositoryDoc.getString("scm")));
 
 		return repository;
 	}

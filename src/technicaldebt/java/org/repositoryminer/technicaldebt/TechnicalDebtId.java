@@ -2,5 +2,5 @@ package org.repositoryminer.technicaldebt;
 
 public enum TechnicalDebtId {
 
-	CODE_DEBT,
+	CODE_DEBT, DESIGN_DEBT;
 }

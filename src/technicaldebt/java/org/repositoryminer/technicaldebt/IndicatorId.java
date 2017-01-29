@@ -11,7 +11,8 @@ public enum IndicatorId {
 	AUTOMATIC_STATIC_ANALYSIS_ISSUES,
 	DATA_CLASS,
 	REFUSED_PARENT_BEQUEST,
-	DEPTH_OF_INHERITANCE_TREE;
+	DEPTH_OF_INHERITANCE_TREE,
+	CODE_WITHOUT_STANDARDS;
 
 	public static IndicatorId getTechnicalDebtIndicator(String indicatorName) {
 		for (IndicatorId indicator : IndicatorId.values()) {

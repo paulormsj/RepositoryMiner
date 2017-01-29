@@ -77,11 +77,11 @@ public class FindBugsMiner {
 		findBugsExecutor = new FindBugsExecutor(repository.getPath());
 	}
 
-	public void findBugs(String hash) throws IllegalStateException, IOException, InterruptedException {
+	public void execute(String hash) throws IllegalStateException, IOException, InterruptedException {
 		persistAnalysis(hash, null);
 	}
 
-	public void findBugs(String name, ReferenceType type)
+	public void execute(String name, ReferenceType type)
 			throws IllegalStateException, IOException, InterruptedException {
 		Document refDoc = refPersist.findByNameAndType(name, type, repository.getId(), Projections.slice("commits", 1));
 		Reference reference = Reference.parseDocument(refDoc);

@@ -25,7 +25,7 @@ public class TDAnalyzer {
 	
 	// Initializes the types of debts with theirs respectives indicators.
 	static {
-		List<IndicatorId> codeDebt = new ArrayList<IndicatorId>(9);
+		List<IndicatorId> codeDebt = new ArrayList<IndicatorId>(10);
 		List<IndicatorId> desingDebt = new ArrayList<IndicatorId>(8);
 		
 		codeDebt.add(IndicatorId.AUTOMATIC_STATIC_ANALYSIS_ISSUES);
@@ -38,10 +38,14 @@ public class TDAnalyzer {
 		
 		desingDebt.addAll(codeDebt);
 		
+		codeDebt.add(IndicatorId.CODE_WITHOUT_STANDARDS);
 		codeDebt.add(IndicatorId.SLOW_ALGORITHM);
 		codeDebt.add(IndicatorId.MULTITHREAD_CORRECTNESS);
 		
 		desingDebt.add(IndicatorId.DEPTH_OF_INHERITANCE_TREE);
+		
+		debts.put(TechnicalDebtId.CODE_DEBT, codeDebt);
+		debts.put(TechnicalDebtId.DESIGN_DEBT, desingDebt);
 	}
 	
 	private String repositoryId;
@@ -57,20 +61,20 @@ public class TDAnalyzer {
 		this.repositoryId = repositoryId;
 	}
 
-	public void analyzeTD(String hash) {
-		analyze(hash);
+	public void execute(String hash) {
+		persistAnalysis(hash, null);
 	}
 
-	public void analyzeTD(String name, ReferenceType type) {
+	public void execute(String name, ReferenceType type) {
 		Document refDoc = refPersist.findByNameAndType(name, type, repositoryId, Projections.slice("commits", 1));
 		Reference reference = Reference.parseDocument(refDoc);
 
 		String commitId = reference.getCommits().get(0);
-		analyze(commitId);
+		persistAnalysis(commitId, reference);
 	}
 
 	@SuppressWarnings("unchecked")
-	private void analyze(String commitId) {
+	private void persistAnalysis(String commitId, Reference ref) {
 		Commit commit = Commit.parseDocument(commitPersist.findById(commitId, Projections.include("commit_date")));
 		Document wd = wdHandler.findById(commit.getId());
 
@@ -85,6 +89,12 @@ public class TDAnalyzer {
 			}
 
 			Document doc = new Document();
+			
+			if (ref != null) {
+				doc.append("reference_name", ref.getName());
+				doc.append("reference_type", ref.getType().toString());
+			}
+			
 			doc.append("commit", commit.getId());
 			doc.append("commit_date", commit.getCommitDate());
 			doc.append("repository", new ObjectId(repositoryId));

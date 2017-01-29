@@ -7,11 +7,14 @@ import java.util.List;
 import java.util.Map;
 
 import org.bson.Document;
+import org.repositoryminer.checkstyle.persistence.CheckstyleDocumentHandler;
 import org.repositoryminer.findbugs.persistence.FindBugsDocumentHandler;
 import org.repositoryminer.persistence.handler.DirectCodeAnalysisDocumentHandler;
 import org.repositoryminer.persistence.handler.IndirectCodeAnalysisDocumentHandler;
 import org.repositoryminer.pmd.cpd.persistence.CPDDocumentHandler;
 import org.repositoryminer.utility.StringUtils;
+
+import com.mongodb.client.model.Projections;
 
 public class CodeIndicatorsAnalyzer {
 
@@ -20,6 +23,8 @@ public class CodeIndicatorsAnalyzer {
 	
 	private CPDDocumentHandler cpdHandler = new CPDDocumentHandler();
 	private FindBugsDocumentHandler bugHandler = new FindBugsDocumentHandler();
+	private CheckstyleDocumentHandler checkstyleHandler = new CheckstyleDocumentHandler();
+	
 	private Map<IndicatorId, Integer> indicators = new HashMap<IndicatorId, Integer>();
 
 	public Map<IndicatorId, Integer> detect(String filename, String filestate, String snapshot) {
@@ -29,6 +34,7 @@ public class CodeIndicatorsAnalyzer {
 		detecCodeSmells(filehash, filestate, snapshot);
 		detectDuplicatedCode(filehash, snapshot);
 		detectBugs(filehash, snapshot);
+		detectStyleProblems(filehash, snapshot);
 
 		return indicators;
 	}
@@ -82,7 +88,10 @@ public class CodeIndicatorsAnalyzer {
 
 	public void detectDuplicatedCode(long fileshash, String snapshot) {
 		long occurrences = cpdHandler.countOccurrences(fileshash, snapshot);
-		addValueToIndicator(IndicatorId.DUPLICATED_CODE, new Long(occurrences).intValue());
+		
+		if (occurrences > 0) {
+			addValueToIndicator(IndicatorId.DUPLICATED_CODE, new Long(occurrences).intValue());
+		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -114,4 +123,16 @@ public class CodeIndicatorsAnalyzer {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
+	public void detectStyleProblems(long fileshash, String snapshot) {
+		Document doc = checkstyleHandler.findByFile(fileshash, snapshot, Projections.include("style_problems.line"));
+		
+		if (doc == null) {
+			return;
+		}
+		
+		List<Document> problems = (List<Document>) doc.get("style_problems");
+		addValueToIndicator(IndicatorId.CODE_WITHOUT_STANDARDS, problems.size());
+	}
+	
 }

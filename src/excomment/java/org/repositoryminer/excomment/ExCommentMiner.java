@@ -86,11 +86,11 @@ public class ExCommentMiner {
 		this.delimiter = delimiter;
 	}
 
-	public void mineToCommit(String hash) throws IOException {
+	public void execute(String hash) throws IOException {
 		persistAnalysis(hash, null);
 	}
 
-	public void mineToReference(String name, ReferenceType type) throws IOException {
+	public void execute(String name, ReferenceType type) throws IOException {
 		Document refDoc = refPersist.findByNameAndType(name, type, repository.getId(), Projections.slice("commits", 1));
 		Reference reference = Reference.parseDocument(refDoc);
 
