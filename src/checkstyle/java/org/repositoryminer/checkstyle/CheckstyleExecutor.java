@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.repositoryminer.checkstyle.audit.RepositoryMinerAudit;
 import org.repositoryminer.checkstyle.model.StyleProblem;
 import org.repositoryminer.exceptions.RepositoryMinerException;
@@ -27,10 +26,12 @@ import com.puppycrawl.tools.checkstyle.api.RootModule;
 
 public class CheckstyleExecutor {
 
+	private static final String[] EXTENSION_FILE_FILTER = { "java" };
+
 	private String propertiesFile;
 	private String configFile;
 	private String repository;
-	
+
 	public CheckstyleExecutor(String repository) {
 		this.repository = repository;
 	}
@@ -71,7 +72,7 @@ public class CheckstyleExecutor {
 		rootModule.process(getFiles(repository));
 
 		rootModule.destroy();
-		
+
 		return listener.getFileErrors();
 	}
 
@@ -99,7 +100,7 @@ public class CheckstyleExecutor {
 	}
 
 	private static List<File> getFiles(String dir) {
-		Collection<File> files = FileUtils.listFiles(new File(dir), TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE);
+		Collection<File> files = FileUtils.listFiles(new File(dir), EXTENSION_FILE_FILTER, true);
 		return new ArrayList<File>(files);
 	}
 
