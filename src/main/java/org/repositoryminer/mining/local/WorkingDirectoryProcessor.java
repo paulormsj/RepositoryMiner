@@ -21,22 +21,17 @@ public class WorkingDirectoryProcessor {
 
 	private static final int COMMIT_RANGE = 1000;
 
-	private CommitDocumentHandler commitHandler;
-	private ReferenceDocumentHandler referenceHandler;
-	private WorkingDirectoryDocumentHandler wdHandler;
+	private CommitDocumentHandler commitHandler = new CommitDocumentHandler();
+	private ReferenceDocumentHandler referenceHandler = new ReferenceDocumentHandler();
+	private WorkingDirectoryDocumentHandler wdHandler = new WorkingDirectoryDocumentHandler();
 	
 	private Set<String> visitedCommits;
 	private String repositoryId; 
 	private List<Reference> references;
-	private WorkingDirectory workingDirectory;
 	private IMiningListener miningListener;
 	
-	public WorkingDirectoryProcessor() {
-		commitHandler = new CommitDocumentHandler();
-		referenceHandler = new ReferenceDocumentHandler();
-		wdHandler = new WorkingDirectoryDocumentHandler();
-	}
-
+	private WorkingDirectory workingDirectory;
+	
 	public void setVisitedCommits(Set<String> visitedCommits) {
 		this.visitedCommits = visitedCommits;
 	}

@@ -5,7 +5,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 import org.eclipse.jgit.api.Git;
@@ -57,7 +59,7 @@ public class GitSCM implements ISCM {
 	private TreeWalk treeWalk;
 	private DiffFormatter diffFormatter;
 	private String repoPath;
-
+	
 	@Override
 	public void open(String repositoryPath) {
 		FileRepositoryBuilder repositoryBuilder = new FileRepositoryBuilder();
@@ -352,6 +354,45 @@ public class GitSCM implements ISCM {
 			errorHandler(ErrorMessage.GIT_TAG_COMMITS_ERROR.toString(), e);
 			return null;
 		}
+	}
+
+	@Override
+	public List<Contributor> getCommitters(String filename, String reference) {
+		Map<String, Contributor> contributors = new HashMap<String, Contributor>();
+		
+		try {
+			Iterable<RevCommit> commits = git.log().add(repository.resolve(reference)).addPath(filename).call();
+			
+			for (RevCommit commit : commits) {
+				PersonIdent author = commit.getAuthorIdent();
+				PersonIdent committer = commit.getCommitterIdent();
+				
+				if (!contributors.containsKey(committer.getEmailAddress())) {
+					Contributor c = new Contributor(committer.getName(), committer.getEmailAddress());
+					c.setCollaborator(true);
+					contributors.put(c.getEmail(), c);
+				} else {
+					contributors.get(committer.getEmailAddress()).setCollaborator(true);
+				}
+				
+				if (author.getEmailAddress() != committer.getEmailAddress()) {
+					if (!contributors.containsKey(author.getEmailAddress())) {
+						Contributor c = new Contributor(author.getName(), author.getEmailAddress());
+						contributors.put(c.getEmail(), c);
+					}
+				}
+			}
+			
+			List<Contributor> contribsList = new ArrayList<Contributor>(contributors.size());
+			for (Contributor c : contributors.values()) {
+				contribsList.add(c);
+			}
+			return contribsList;
+		} catch (RevisionSyntaxException | GitAPIException | IOException e) {
+			errorHandler(ErrorMessage.GIT_TAG_COMMITS_ERROR.toString(), e);
+			return null;
+		}
+		
 	}
 
 }
