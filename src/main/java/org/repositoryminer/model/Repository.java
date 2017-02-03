@@ -20,13 +20,16 @@ public class Repository {
 		return doc;
 	}
 
+	@SuppressWarnings("unchecked")
 	public static Repository parseDocument(Document repositoryDoc) {
 		if (repositoryDoc == null)
 			return null;
-		
+
 		Repository repository = new Repository(repositoryDoc.getObjectId("_id").toString(),
 				repositoryDoc.getString("name"), repositoryDoc.getString("path"),
 				repositoryDoc.getString("description"), SCMType.parse(repositoryDoc.getString("scm")));
+
+		repository.setContributors(Contributor.parseDocuments((List<Document>) repositoryDoc.get("contributors")));
 
 		return repository;
 	}
@@ -37,7 +40,7 @@ public class Repository {
 
 	public Repository() {
 	}
-	
+
 	public Repository(String id, String name, String path, String description, SCMType scm) {
 		this.id = id;
 		this.name = name;
