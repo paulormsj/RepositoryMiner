@@ -63,13 +63,14 @@ public class IncrementalMiningProcessor {
 			ref.setRepository(repositoryId);
 			Document refDoc = refDocumentHandler.findByPath(ref.getPath(), repositoryId, Projections.include("_id"));
 
+			ref.setCommits(scm.getReferenceCommits(ref.getPath(), ref.getType()));
+			
 			if (refDoc == null) {
-				ref.setCommits(scm.getReferenceCommits(ref.getPath(), ref.getType()));
 				refDoc = ref.toDocument();
 				refDocumentHandler.insert(refDoc);
 			} else {
 				refDocumentHandler.updateOnlyCommits(refDoc.getObjectId("_id").toString(),
-						scm.getReferenceCommits(ref.getPath(), ref.getType()));
+						ref.getCommits());
 			}
 
 			listener.notifyCommitsMiningStart(ref.getName(), ref.getType(), ref.getCommits().size());

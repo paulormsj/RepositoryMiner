@@ -37,7 +37,7 @@ public class Contributor {
 		}
 		
 		Contributor c = new Contributor(doc.getString("name"), doc.getString("email"), doc.getString("login"),
-				doc.getString("avatar_url"), doc.getBoolean("collaborator"));
+				doc.getString("avatar_url"), doc.getBoolean("collaborator", false));
 		return c;
 	}
 	

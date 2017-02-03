@@ -63,27 +63,31 @@ public class TDAnalyzer {
 	private final ISCM scm;
 	private final Repository repository;
 
-	public TDAnalyzer(String repositoryId) {
+	public TDAnalyzer(Repository repository) {
+		this.repository = repository;
+		scm = SCMFactory.getSCM(repository.getScm());
+	}
+	
+	public TDAnalyzer(final String repositoryId) {
 		final RepositoryDocumentHandler  handler = new RepositoryDocumentHandler();
 		repository = Repository.parseDocument(handler.findById(repositoryId, Projections.include("scm", "path")));
-		
 		scm = SCMFactory.getSCM(repository.getScm());
 	}
 
-	public void execute(String hash) {
+	public void execute(final String hash) {
 		persistAnalysis(hash, null);
 	}
 
-	public void execute(String name, ReferenceType type) {
-		Document refDoc = refPersist.findByNameAndType(name, type, repository.getId(), Projections.slice("commits", 1));
-		Reference reference = Reference.parseDocument(refDoc);
+	public void execute(final String name, final ReferenceType type) {
+		final Document refDoc = refPersist.findByNameAndType(name, type, repository.getId(), Projections.slice("commits", 1));
+		final Reference reference = Reference.parseDocument(refDoc);
 
-		String commitId = reference.getCommits().get(0);
+		final String commitId = reference.getCommits().get(0);
 		persistAnalysis(commitId, reference);
 	}
 
 	@SuppressWarnings("unchecked")
-	private void persistAnalysis(String commitId, Reference ref) {
+	private void persistAnalysis(final String commitId, final Reference ref) {
 		final Commit commit = Commit.parseDocument(commitPersist.findById(commitId, Projections.include("commit_date")));
 		final Document wd = wdHandler.findById(commit.getId());
 
@@ -113,7 +117,7 @@ public class TDAnalyzer {
 			doc.append("filehash", StringUtils.encodeToCRC32(file.getString("file")));
 			doc.append("technical_debt", false);
 			
-			List<Document> contribsDoc = new ArrayList<Document>();
+			final List<Document> contribsDoc = new ArrayList<Document>();
 			for (Contributor c : scm.getCommitters(file.getString("file"), commitId)) {
 				contribsDoc.add(c.toDocument().append("colaborator", c.isCollaborator()));
 			}

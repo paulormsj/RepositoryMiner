@@ -104,10 +104,10 @@ public class IndirectCodeAnalysisProcessor {
 		for (int i = 0; i < references.size(); i++) {
 			String commitId = references.get(i).getCommits().get(0);
 			if (indirectAnalysisHandler.hasRecord(repositoryId, commitId)) {
+				updateReferenceInIndirectAnalysis(commitId, references.get(i));
 				snapshots.remove(commitId);
 				references.remove(i);
 				i--;
-				updateReferenceInIndirectAnalysis(commitId, references.get(i));
 			}
 		}
 

@@ -53,6 +53,10 @@ public class CheckstyleExecutor {
 			properties = loadProperties(new File(propertiesFile));
 		}
 
+		if (configFile == null) {
+			configFile = "/sun_checks.xml";
+		}
+		
 		// create configurations
 		final Configuration config = ConfigurationLoader.loadConfiguration(configFile,
 				new PropertiesExpander(properties));
@@ -84,8 +88,7 @@ public class CheckstyleExecutor {
 			fis = new FileInputStream(file);
 			properties.load(fis);
 		} catch (IOException e) {
-			throw new RepositoryMinerException(String.format("Can not load properties from %s", file.getAbsolutePath()),
-					e);
+			throw new RepositoryMinerException(String.format("Can not load properties from %s", file.getAbsolutePath()), e);
 		} finally {
 			Closeables.closeQuietly(fis);
 		}
