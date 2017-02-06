@@ -92,4 +92,10 @@ public class TechnicalCodeDebtDocumentHandler extends DocumentHandler {
 		return findMany(where);
 	}
 
+	public Document findByFile(long filehash, String commit, Bson projection) {
+		Bson clause1 = new BasicDBObject("filehash", filehash);
+		Bson clause2 = new BasicDBObject("commit", commit);
+		return findOne(Filters.and(clause1, clause2), projection);
+	}
+	
 }
