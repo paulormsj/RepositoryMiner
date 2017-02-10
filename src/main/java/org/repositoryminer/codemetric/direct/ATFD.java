@@ -33,11 +33,11 @@ public class ATFD implements IDirectCodeMetric {
 	@Override
 	public Document calculate(AbstractClassDeclaration type, AST ast) {
 		methodsDoc.clear();
-		return new Document("metric", CodeMetricId.ATFD.toString()).append("accumulated", calculate(type))
+		return new Document("metric", CodeMetricId.ATFD.toString()).append("accumulated", calculate(type, true))
 				.append("methods", methodsDoc);
 	}
 
-	public int calculate(AbstractClassDeclaration type) {
+	public int calculate(AbstractClassDeclaration type, boolean calculateByMethod) {
 		int atfdClass = 0;
 
 		Map<String, Integer> atfdByMethod = calculateByMethod(type);
@@ -46,7 +46,9 @@ public class ATFD implements IDirectCodeMetric {
 			int atfdMethod = atfdByMethod.get(methodName);
 
 			atfdClass += atfdMethod;
-			methodsDoc.add(new Document("method", methodName).append("value", atfdMethod));
+			if (calculateByMethod) {
+				methodsDoc.add(new Document("method", methodName).append("value", atfdMethod));
+			}
 		}
 
 		return atfdClass;
@@ -56,39 +58,35 @@ public class ATFD implements IDirectCodeMetric {
 		Map<String, Integer> atfdByMethod = new HashMap<String, Integer>();
 		List<MethodDeclaration> methods = currType.getMethods();
 
-		if (methods != null) {
-			for (MethodDeclaration method : methods) {
+		for (MethodDeclaration method : methods) {
 
-				Set<String> accessedFields = new HashSet<String>();
+			Set<String> accessedFields = new HashSet<String>();
 
-				for (Statement stmt : method.getStatements()) {
-					String exp, type;
+			for (Statement stmt : method.getStatements()) {
+				String exp, type;
 
-					if (stmt.getNodeType() == NodeType.FIELD_ACCESS
-							|| stmt.getNodeType() == NodeType.METHOD_INVOCATION) {
-						exp = stmt.getExpression();
-						type = exp.substring(0, exp.lastIndexOf("."));
-					} else {
-						continue;
-					}
-
-					if (stmt.getNodeType().equals(NodeType.FIELD_ACCESS)) {
-						if (!currType.getName().equals(type))
-							accessedFields.add(exp.toLowerCase());
-					} else if (stmt.getNodeType().equals(NodeType.METHOD_INVOCATION)) {
-						String methodInv = exp.substring(exp.lastIndexOf(".") + 1);
-						if (!currType.getName().equals(type)) {
-							if ((methodInv.startsWith("get") || methodInv.startsWith("set"))
-									&& methodInv.length() > 3) {
-								accessedFields.add((type + "." + methodInv.substring(3)).toLowerCase());
-							} else if (methodInv.startsWith("is") && methodInv.length() > 2)
-								accessedFields.add((type + "." + methodInv.substring(2)).toLowerCase());
-						}
-					}
+				if (stmt.getNodeType() == NodeType.FIELD_ACCESS || stmt.getNodeType() == NodeType.METHOD_INVOCATION) {
+					exp = stmt.getExpression();
+					type = exp.substring(0, exp.lastIndexOf("."));
+				} else {
+					continue;
 				}
 
-				atfdByMethod.put(method.getName(), accessedFields.size());
+				if (stmt.getNodeType().equals(NodeType.FIELD_ACCESS)) {
+					if (!currType.getName().equals(type))
+						accessedFields.add(exp.toLowerCase());
+				} else if (stmt.getNodeType().equals(NodeType.METHOD_INVOCATION)) {
+					String methodInv = exp.substring(exp.lastIndexOf(".") + 1);
+					if (!currType.getName().equals(type)) {
+						if ((methodInv.startsWith("get") || methodInv.startsWith("set")) && methodInv.length() > 3) {
+							accessedFields.add((type + "." + methodInv.substring(3)).toLowerCase());
+						} else if (methodInv.startsWith("is") && methodInv.length() > 2)
+							accessedFields.add((type + "." + methodInv.substring(2)).toLowerCase());
+					}
+				}
 			}
+
+			atfdByMethod.put(method.getName(), accessedFields.size());
 		}
 
 		return atfdByMethod;
