@@ -30,27 +30,32 @@ public class TCC implements IDirectCodeMetric {
 
 	@Override
 	public Document calculate(AbstractClassDeclaration type, AST ast) {
-		return new Document("metric", CodeMetricId.TCC.toString()).append("value", calculate(type, type.getMethods()));
+		return new Document("metric", CodeMetricId.TCC.toString()).append("value", calculate(type));
 	}
 
-	public float calculate(AbstractClassDeclaration type, List<MethodDeclaration> methods) {
-		List<MethodDeclaration> methodList = filterMethods(methods);
-		int n = methodList.size();
-		int npc = (n * (n - 1)) / 2; // Number of possible connected methods
-		int ndc = 0; // number of directly connected methods
-
-		for (int i = 0; i < n; i++) {
-			List<String> accessedFieldsMethod1 = processAccessedFields(type, methodList.get(i));
-			for (int j = i + 1; j < n; j++) {
-				List<String> accessedFieldsMethod2 = processAccessedFields(type, methodList.get(j));
-				if (isConnected(accessedFieldsMethod1, accessedFieldsMethod2))
-					ndc++;
-			}
-		}
-
+	public float calculate(AbstractClassDeclaration type) {
 		float tcc = 0;
-		if (npc > 0) {
-			tcc = (float) ndc / npc;
+
+		List<MethodDeclaration> methodList = type.getMethods();
+
+		if (methodList != null) {
+			methodList = filterMethods(methodList);
+			int n = methodList.size();
+			int npc = (n * (n - 1)) / 2; // Number of possible connected methods
+			int ndc = 0; // number of directly connected methods
+
+			for (int i = 0; i < n; i++) {
+				List<String> accessedFieldsMethod1 = processAccessedFields(type, methodList.get(i));
+				for (int j = i + 1; j < n; j++) {
+					List<String> accessedFieldsMethod2 = processAccessedFields(type, methodList.get(j));
+					if (isConnected(accessedFieldsMethod1, accessedFieldsMethod2))
+						ndc++;
+				}
+			}
+
+			if (npc > 0) {
+				tcc = (float) ndc / npc;
+			}
 		}
 
 		return tcc;
@@ -88,7 +93,7 @@ public class TCC implements IDirectCodeMetric {
 			}
 
 		}
-		
+
 		return new ArrayList<String>(fields);
 	}
 
@@ -115,7 +120,7 @@ public class TCC implements IDirectCodeMetric {
 		if (field.length() == 0) {
 			return fields;
 		}
-		
+
 		char c[] = field.toCharArray();
 		c[0] = Character.toLowerCase(c[0]);
 		String field2 = new String(c);

@@ -1,8 +1,10 @@
 package org.repositoryminer.codemetric.direct;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.bson.Document;
@@ -31,53 +33,65 @@ public class ATFD implements IDirectCodeMetric {
 	@Override
 	public Document calculate(AbstractClassDeclaration type, AST ast) {
 		methodsDoc.clear();
-		return new Document("metric", CodeMetricId.ATFD.toString())
-				.append("accumulated", calculate(type, type.getMethods(), true)).append("methods", methodsDoc);
+		return new Document("metric", CodeMetricId.ATFD.toString()).append("accumulated", calculate(type))
+				.append("methods", methodsDoc);
 	}
 
-	public int calculate(AbstractClassDeclaration type, List<MethodDeclaration> methods, boolean calculateByMethod) {
+	public int calculate(AbstractClassDeclaration type) {
 		int atfdClass = 0;
 
-		for (MethodDeclaration mDeclaration : methods) {
-			int atfdMethod = countForeignAccessedFields(type, mDeclaration);
+		Map<String, Integer> atfdByMethod = calculateByMethod(type);
+
+		for (String methodName : atfdByMethod.keySet()) {
+			int atfdMethod = atfdByMethod.get(methodName);
 
 			atfdClass += atfdMethod;
-			if (calculateByMethod) {
-				methodsDoc.add(new Document("method", mDeclaration.getName()).append("value", atfdMethod));
-			}
+			methodsDoc.add(new Document("method", methodName).append("value", atfdMethod));
 		}
 
 		return atfdClass;
 	}
 
-	private int countForeignAccessedFields(AbstractClassDeclaration currType, MethodDeclaration method) {
-		Set<String> accessedFields = new HashSet<String>();
+	public Map<String, Integer> calculateByMethod(AbstractClassDeclaration currType) {
+		Map<String, Integer> atfdByMethod = new HashMap<String, Integer>();
+		List<MethodDeclaration> methods = currType.getMethods();
 
-		for (Statement stmt : method.getStatements()) {
-			String exp, type;
+		if (methods != null) {
+			for (MethodDeclaration method : methods) {
 
-			if (stmt.getNodeType() == NodeType.FIELD_ACCESS || stmt.getNodeType() == NodeType.METHOD_INVOCATION) {
-				exp = stmt.getExpression();
-				type = exp.substring(0, exp.lastIndexOf("."));
-			} else {
-				continue;
-			}
+				Set<String> accessedFields = new HashSet<String>();
 
-			if (stmt.getNodeType().equals(NodeType.FIELD_ACCESS)) {
-				if (!currType.getName().equals(type))
-					accessedFields.add(exp.toLowerCase());
-			} else if (stmt.getNodeType().equals(NodeType.METHOD_INVOCATION)) {
-				String methodInv = exp.substring(exp.lastIndexOf(".") + 1);
-				if (!currType.getName().equals(type)) {
-					if ((methodInv.startsWith("get") || methodInv.startsWith("set")) && methodInv.length() > 3) {
-						accessedFields.add((type + "." + methodInv.substring(3)).toLowerCase());
-					} else if (methodInv.startsWith("is") && methodInv.length() > 2)
-						accessedFields.add((type + "." + methodInv.substring(2)).toLowerCase());
+				for (Statement stmt : method.getStatements()) {
+					String exp, type;
+
+					if (stmt.getNodeType() == NodeType.FIELD_ACCESS
+							|| stmt.getNodeType() == NodeType.METHOD_INVOCATION) {
+						exp = stmt.getExpression();
+						type = exp.substring(0, exp.lastIndexOf("."));
+					} else {
+						continue;
+					}
+
+					if (stmt.getNodeType().equals(NodeType.FIELD_ACCESS)) {
+						if (!currType.getName().equals(type))
+							accessedFields.add(exp.toLowerCase());
+					} else if (stmt.getNodeType().equals(NodeType.METHOD_INVOCATION)) {
+						String methodInv = exp.substring(exp.lastIndexOf(".") + 1);
+						if (!currType.getName().equals(type)) {
+							if ((methodInv.startsWith("get") || methodInv.startsWith("set"))
+									&& methodInv.length() > 3) {
+								accessedFields.add((type + "." + methodInv.substring(3)).toLowerCase());
+							} else if (methodInv.startsWith("is") && methodInv.length() > 2)
+								accessedFields.add((type + "." + methodInv.substring(2)).toLowerCase());
+						}
+					}
 				}
+
+				atfdByMethod.put(method.getName(), accessedFields.size());
 			}
 		}
 
-		return accessedFields.size();
+		return atfdByMethod;
 	}
 
 }
