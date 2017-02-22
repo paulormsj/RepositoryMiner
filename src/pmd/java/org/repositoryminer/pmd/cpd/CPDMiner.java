@@ -1,5 +1,6 @@
 package org.repositoryminer.pmd.cpd;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -17,12 +18,18 @@ import org.repositoryminer.persistence.handler.ReferenceDocumentHandler;
 import org.repositoryminer.persistence.handler.RepositoryDocumentHandler;
 import org.repositoryminer.pmd.cpd.model.Occurrence;
 import org.repositoryminer.pmd.cpd.persistence.CPDDocumentHandler;
+import org.repositoryminer.scm.ISCM;
 import org.repositoryminer.scm.ReferenceType;
+import org.repositoryminer.scm.SCMFactory;
+import org.repositoryminer.utility.FileUtils;
 
 import com.mongodb.client.model.Projections;
 
 public class CPDMiner {
 
+	private ISCM scm;
+	private String tempRepository;
+	
 	private Repository repository;
 	private CPDExecutor cpdExecutor;
 
@@ -40,13 +47,11 @@ public class CPDMiner {
 
 	public CPDMiner(Repository repository) {
 		this.repository = repository;
-		cpdExecutor = new CPDExecutor(repository.getPath());
 	}
 
 	public CPDMiner(String repositoryId) {
 		RepositoryDocumentHandler repoHandler = new RepositoryDocumentHandler();
-		this.repository = Repository.parseDocument(repoHandler.findById(repositoryId, Projections.include("path")));
-		cpdExecutor = new CPDExecutor(repository.getPath());
+		this.repository = Repository.parseDocument(repoHandler.findById(repositoryId, Projections.include("path", "name", "scm")));
 	}
 
 	public int getMinTokens() {
@@ -77,6 +82,21 @@ public class CPDMiner {
 		persistAnalysis(hash, null);
 	}
 
+	public void prepare() throws IOException {
+		File repositoryFolder = new File(repository.getPath());
+		String tempRepository = FileUtils.copyFolderToTmp(repositoryFolder.getAbsolutePath(), repository.getName());
+		
+		scm = SCMFactory.getSCM(repository.getScm());
+		scm.open(tempRepository);
+		
+		cpdExecutor = new CPDExecutor(tempRepository);
+	}
+	
+	public void dispose() throws IOException {
+		scm.close();
+		FileUtils.deleteFolder(tempRepository);
+	}
+	
 	public void execute(String name, ReferenceType type) throws IOException {
 		Document refDoc = refPersist.findByNameAndType(name, type, repository.getId(), Projections.slice("commits", 1));
 		Reference reference = Reference.parseDocument(refDoc);
@@ -84,11 +104,13 @@ public class CPDMiner {
 		String commitId = reference.getCommits().get(0);
 		persistAnalysis(commitId, reference);
 	}
-
+	
 	private void persistAnalysis(String commitId, Reference ref) throws IOException {
 		Document commitDoc = commitPersist.findById(commitId, Projections.include("commit_date"));
 		Commit commit = Commit.parseDocument(commitDoc);
-
+		
+		scm.checkout(commitId);
+		
 		configureCPD();
 		List<Occurrence> occurrences = cpdExecutor.execute();
 

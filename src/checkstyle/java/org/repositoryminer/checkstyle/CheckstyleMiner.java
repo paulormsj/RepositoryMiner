@@ -1,5 +1,7 @@
 package org.repositoryminer.checkstyle;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -16,7 +18,10 @@ import org.repositoryminer.model.Repository;
 import org.repositoryminer.persistence.handler.CommitDocumentHandler;
 import org.repositoryminer.persistence.handler.ReferenceDocumentHandler;
 import org.repositoryminer.persistence.handler.RepositoryDocumentHandler;
+import org.repositoryminer.scm.ISCM;
 import org.repositoryminer.scm.ReferenceType;
+import org.repositoryminer.scm.SCMFactory;
+import org.repositoryminer.utility.FileUtils;
 import org.repositoryminer.utility.StringUtils;
 
 import com.mongodb.client.model.Projections;
@@ -24,6 +29,9 @@ import com.puppycrawl.tools.checkstyle.api.CheckstyleException;
 
 public class CheckstyleMiner {
 
+	private ISCM scm;
+	private String tempRepository;
+	
 	private Repository repository;
 
 	private CommitDocumentHandler commitPersist = new CommitDocumentHandler();
@@ -37,14 +45,12 @@ public class CheckstyleMiner {
 
 	public CheckstyleMiner(Repository repository) {
 		this.repository = repository;
-		checkstyleExecutor = new CheckstyleExecutor(repository.getPath());
 	}
 	
 	public CheckstyleMiner(String repositoryId) {
 		final RepositoryDocumentHandler repoHandler = new RepositoryDocumentHandler();
 		this.repository = Repository
-				.parseDocument(repoHandler.findById(repositoryId, Projections.include("path")));
-		checkstyleExecutor = new CheckstyleExecutor(repository.getPath());
+				.parseDocument(repoHandler.findById(repositoryId, Projections.include("path", "name", "scm")));
 	}
 	
 	public void execute(String hash) {
@@ -59,8 +65,25 @@ public class CheckstyleMiner {
 		persistAnalysis(commitId, reference);
 	}
 	
+	public void prepare() throws IOException {
+		File repositoryFolder = new File(repository.getPath());
+		String tempRepository = FileUtils.copyFolderToTmp(repositoryFolder.getAbsolutePath(), repository.getName());
+		
+		scm = SCMFactory.getSCM(repository.getScm());
+		scm.open(tempRepository);
+		
+		checkstyleExecutor = new CheckstyleExecutor(tempRepository);
+	}
+	
+	public void dispose() throws IOException {
+		scm.close();
+		FileUtils.deleteFolder(tempRepository);
+	}
+	
 	private void persistAnalysis(String commitId, Reference ref) {
 		final Commit commit = Commit.parseDocument(commitPersist.findById(commitId, Projections.include("commit_date")));
+		
+		scm.checkout(commitId);
 		
 		configureCheckstyle();
 		Map<String, List<StyleProblem>> result = null;
