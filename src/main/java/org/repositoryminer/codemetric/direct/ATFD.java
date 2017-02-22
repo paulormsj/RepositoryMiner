@@ -32,13 +32,17 @@ public class ATFD implements IDirectCodeMetric {
 	public Document calculate(AbstractClassDeclaration type, AST ast) {
 		methodsDoc.clear();
 
+		int atfdCls = 0;
 		for (MethodDeclaration mDeclaration : type.getMethods()) {
+			int atfdMethod = calculate(type, mDeclaration);
+			atfdCls += atfdMethod;
+			
 			methodsDoc.add(new Document("method", mDeclaration.getName()).append("value",
-					calculate(type, mDeclaration)));
+					atfdMethod));
 		}
 
 		return new Document("metric", CodeMetricId.ATFD.toString())
-				.append("value", calculate(type)).append("methods", methodsDoc);
+				.append("value", atfdCls).append("methods", methodsDoc);
 	}
 
 	public int calculate(AbstractClassDeclaration type) {
