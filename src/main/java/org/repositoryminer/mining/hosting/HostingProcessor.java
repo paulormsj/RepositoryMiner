@@ -42,7 +42,7 @@ public class HostingProcessor {
 
 	public void mine() {
 		RepositoryDocumentHandler repoDocHandler = new RepositoryDocumentHandler();
-		if (!repoDocHandler.checkIfRepositoryExistsById(repositoryId)) {
+		if (!repoDocHandler.checkIfRepositoryExistsByName(repositoryId)) {
 			throw new RepositoryMinerException(ErrorMessage.REPOSITORY_NOT_FOUND.toString());
 		}
 

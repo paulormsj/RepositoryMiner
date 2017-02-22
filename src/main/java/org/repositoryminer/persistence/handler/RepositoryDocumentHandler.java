@@ -16,7 +16,7 @@ public class RepositoryDocumentHandler extends DocumentHandler {
 		super.collection = Connection.getInstance().getCollection(COLLECTION_NAME);
 	}
 
-	public boolean checkIfRepositoryExistsById(String name) {
+	public boolean checkIfRepositoryExistsByName(String name) {
 		Document clause = new Document("name", name);
 		return collection.count(clause) > 0 ? true : false;
 	}
