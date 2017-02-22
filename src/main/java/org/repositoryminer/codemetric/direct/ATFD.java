@@ -31,26 +31,28 @@ public class ATFD implements IDirectCodeMetric {
 	@Override
 	public Document calculate(AbstractClassDeclaration type, AST ast) {
 		methodsDoc.clear();
+
+		for (MethodDeclaration mDeclaration : type.getMethods()) {
+			methodsDoc.add(new Document("method", mDeclaration.getName()).append("value",
+					calculate(type, mDeclaration)));
+		}
+
 		return new Document("metric", CodeMetricId.ATFD.toString())
-				.append("value", calculate(type, type.getMethods(), true)).append("methods", methodsDoc);
+				.append("value", calculate(type)).append("methods", methodsDoc);
 	}
 
-	public int calculate(AbstractClassDeclaration type, List<MethodDeclaration> methods, boolean calculateByMethod) {
+	public int calculate(AbstractClassDeclaration type) {
 		int atfdClass = 0;
 
-		for (MethodDeclaration mDeclaration : methods) {
-			int atfdMethod = countForeignAccessedFields(type, mDeclaration);
-
+		for (MethodDeclaration mDeclaration : type.getMethods()) {
+			int atfdMethod = calculate(type, mDeclaration);
 			atfdClass += atfdMethod;
-			if (calculateByMethod) {
-				methodsDoc.add(new Document("method", mDeclaration.getName()).append("value", atfdMethod));
-			}
 		}
 
 		return atfdClass;
 	}
 
-	private int countForeignAccessedFields(AbstractClassDeclaration currType, MethodDeclaration method) {
+	public int calculate(AbstractClassDeclaration currType, MethodDeclaration method) {
 		Set<String> accessedFields = new HashSet<String>();
 
 		for (Statement stmt : method.getStatements()) {
