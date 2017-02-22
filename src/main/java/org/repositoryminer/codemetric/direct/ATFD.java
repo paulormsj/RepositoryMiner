@@ -21,8 +21,6 @@ import org.repositoryminer.codemetric.CodeMetricId;
  */
 public class ATFD implements IDirectCodeMetric {
 
-	private List<Document> methodsDoc = new ArrayList<Document>();
-
 	@Override
 	public CodeMetricId getId() {
 		return CodeMetricId.ATFD;
@@ -30,7 +28,7 @@ public class ATFD implements IDirectCodeMetric {
 
 	@Override
 	public Document calculate(AbstractClassDeclaration type, AST ast) {
-		methodsDoc.clear();
+		List<Document> methodsDoc = new ArrayList<Document>();
 
 		int atfdCls = 0;
 		for (MethodDeclaration mDeclaration : type.getMethods()) {
