@@ -260,7 +260,9 @@ public class JavaParser implements IParser {
 		FieldDeclaration fieldDecl = new FieldDeclaration();
 		
 		ITypeBinding bind = field.getType().resolveBinding();
-		fieldDecl.setType(bind.getQualifiedName());
+		if (bind != null) {
+			fieldDecl.setType(bind.getQualifiedName());
+		}
 
 		for (VariableDeclarationFragment vdf : (List<VariableDeclarationFragment>) field.fragments()) {
 			fieldDecl.setName(vdf.getName().getIdentifier());
