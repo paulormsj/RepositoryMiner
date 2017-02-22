@@ -21,6 +21,11 @@ public class RepositoryDocumentHandler extends DocumentHandler {
 		return collection.count(clause) > 0 ? true : false;
 	}
 
+	public boolean checkIfRepositoryExistsById(String id) {
+		Document clause = new Document("_id", new ObjectId(id));
+		return collection.count(clause) > 0 ? true : false;
+	}
+
 	public Document findByName(String name) {
 		return findOne(new BasicDBObject("name", name));
 	}
@@ -35,5 +40,5 @@ public class RepositoryDocumentHandler extends DocumentHandler {
 		Document newDoc = new Document("$set", new Document("contributors", contributors));
 		collection.updateOne(clause, newDoc);
 	}
-	
+
 }
