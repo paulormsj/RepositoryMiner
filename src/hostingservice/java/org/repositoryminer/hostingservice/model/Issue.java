@@ -1,10 +1,13 @@
-package org.repositoryminer.model;
+package org.repositoryminer.hostingservice.model;
 
 import java.util.Date;
 import java.util.List;
 
 import org.bson.Document;
-import org.repositoryminer.scm.hostingservice.StatusType;
+import org.repositoryminer.hostingservice.service.StatusType;
+import org.repositoryminer.model.Comment;
+import org.repositoryminer.model.Event;
+import org.repositoryminer.model.Label;
 
 public class Issue {
 

@@ -1,11 +1,11 @@
-package org.repositoryminer.scm.hostingservice;
+package org.repositoryminer.hostingservice.service;
 
 import java.util.List;
 
-import org.repositoryminer.mining.hosting.HostingServiceMiner;
+import org.repositoryminer.hostingservice.mining.HostingServiceMiner;
+import org.repositoryminer.hostingservice.model.Issue;
+import org.repositoryminer.hostingservice.model.Milestone;
 import org.repositoryminer.model.Contributor;
-import org.repositoryminer.model.Issue;
-import org.repositoryminer.model.Milestone;
 
 public interface IHostingService {
 

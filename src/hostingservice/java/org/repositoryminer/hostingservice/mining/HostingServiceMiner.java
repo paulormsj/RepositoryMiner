@@ -1,9 +1,9 @@
-package org.repositoryminer.mining.hosting;
+package org.repositoryminer.hostingservice.mining;
 
-import org.repositoryminer.listener.servicemining.IServiceMiningListener;
-import org.repositoryminer.listener.servicemining.NullServiceMiningListener;
+import org.repositoryminer.hostingservice.listener.IServiceMiningListener;
+import org.repositoryminer.hostingservice.listener.NullServiceMiningListener;
+import org.repositoryminer.hostingservice.service.HostingServiceType;
 import org.repositoryminer.mining.RepositoryMiner;
-import org.repositoryminer.scm.hostingservice.HostingServiceType;
 
 /**
  * This is the entry point to configure the parameters that enable the

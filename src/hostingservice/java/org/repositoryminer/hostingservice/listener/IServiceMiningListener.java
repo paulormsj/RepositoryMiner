@@ -1,4 +1,4 @@
-package org.repositoryminer.listener.servicemining;
+package org.repositoryminer.hostingservice.listener;
 
 public interface IServiceMiningListener {
 

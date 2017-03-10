@@ -1,4 +1,4 @@
-package org.repositoryminer.mining.hosting;
+package org.repositoryminer.hostingservice.mining;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,15 +6,15 @@ import java.util.List;
 import org.bson.Document;
 import org.repositoryminer.exceptions.ErrorMessage;
 import org.repositoryminer.exceptions.RepositoryMinerException;
-import org.repositoryminer.listener.servicemining.IServiceMiningListener;
+import org.repositoryminer.hostingservice.listener.IServiceMiningListener;
+import org.repositoryminer.hostingservice.model.Issue;
+import org.repositoryminer.hostingservice.model.Milestone;
+import org.repositoryminer.hostingservice.persistence.IssueDocumentHandler;
+import org.repositoryminer.hostingservice.persistence.MilestoneDocumentHandler;
+import org.repositoryminer.hostingservice.service.HostingServiceFactory;
+import org.repositoryminer.hostingservice.service.IHostingService;
 import org.repositoryminer.model.Contributor;
-import org.repositoryminer.model.Issue;
-import org.repositoryminer.model.Milestone;
-import org.repositoryminer.persistence.handler.IssueDocumentHandler;
-import org.repositoryminer.persistence.handler.MilestoneDocumentHandler;
 import org.repositoryminer.persistence.handler.RepositoryDocumentHandler;
-import org.repositoryminer.scm.hostingservice.HostingServiceFactory;
-import org.repositoryminer.scm.hostingservice.IHostingService;
 
 public class HostingProcessor {
 

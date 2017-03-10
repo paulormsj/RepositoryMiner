@@ -1,4 +1,4 @@
-package org.repositoryminer.scm.hostingservice;
+package org.repositoryminer.hostingservice.service;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -14,13 +14,13 @@ import org.eclipse.egit.github.core.service.CollaboratorService;
 import org.eclipse.egit.github.core.service.IssueService;
 import org.eclipse.egit.github.core.service.MilestoneService;
 import org.eclipse.egit.github.core.service.RepositoryService;
-import org.repositoryminer.mining.hosting.HostingServiceMiner;
+import org.repositoryminer.hostingservice.mining.HostingServiceMiner;
+import org.repositoryminer.hostingservice.model.Issue;
+import org.repositoryminer.hostingservice.model.Milestone;
 import org.repositoryminer.model.Comment;
 import org.repositoryminer.model.Contributor;
 import org.repositoryminer.model.Event;
-import org.repositoryminer.model.Issue;
 import org.repositoryminer.model.Label;
-import org.repositoryminer.model.Milestone;
 
 public class GitHubService implements IHostingService {
 

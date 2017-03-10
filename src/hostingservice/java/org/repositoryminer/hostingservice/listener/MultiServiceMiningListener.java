@@ -1,4 +1,4 @@
-package org.repositoryminer.listener.servicemining;
+package org.repositoryminer.hostingservice.listener;
 
 import java.util.ArrayList;
 import java.util.List;

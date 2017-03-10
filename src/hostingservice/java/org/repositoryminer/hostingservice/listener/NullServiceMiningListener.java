@@ -1,6 +1,6 @@
-package org.repositoryminer.listener.servicemining;
+package org.repositoryminer.hostingservice.listener;
 
-public class ConsoleServiceMiningListener implements IServiceMiningListener {
+public class NullServiceMiningListener implements IServiceMiningListener {
 
 	@Override
 	public void notifyServiceMiningStart(String name) {
